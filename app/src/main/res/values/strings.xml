@@ -1,0 +1,44 @@
+<resources>
+    <string name="app_name">acikgoz</string>
+    <string name="main_welcome">Hoş geldiniz. Hangi yardıma ihtiyacınız var?</string>
+
+    <string name="btn_ai_eye">Yapay Zeka Gözü</string>
+    <string name="cd_ai_eye">Yapay Zeka Gözü modunu başlat. Etrafındaki nesneleri, yazıları ve para birimini tanır. Çevrimdışı çalışır.</string>
+
+    <string name="btn_human_eye">İnsan Gözü (Canlı Gönüllü)</string>
+    <string name="cd_human_eye">Canlı bir gönüllü veya kurumsal destek hattıyla görüntülü bağlantı kur. İnternet gereklidir.</string>
+
+    <string name="btn_navigation">Yaya Navigasyon</string>
+    <string name="cd_navigation">Çevrimdışı haritalar ve sesli komutlarla adım adım yaya yol tarifi al.</string>
+
+    <string name="status_connecting_volunteer">Gönüllü aranıyor. Lütfen bekleyin.</string>
+    <string name="status_volunteer_connected">Bağlantı başarılı. Gönüllü bağlandı. Konuşmaya başlayabilirsiniz.</string>
+    <string name="status_call_ended">Çağrı sonlandırıldı. Ana menüye dönülüyor.</string>
+    <string name="status_no_volunteer">Şu anda müsait gönüllü bulunmamaktadır. Lütfen daha sonra tekrar deneyin.</string>
+
+    <string name="ai_ready">Yapay Zeka hazır. Kamerayı bir nesneye veya metne odaklayın.</string>
+    <string name="ai_no_object_detected">Hiçbir nesne algılanmadı. Lütfen kamerayı daha yakına veya başka bir yere çevirin.</string>
+    <string name="ai_reading_text">Metin algılandı ve okunuyor.</string>
+    <string name="ai_currency_detected">Para birimi algılandı.</string>
+
+    <string name="nav_speak_destination">Hedefi sesli olarak söyle düğmesi.</string>
+    <string name="nav_start_route">Rotayı başlat düğmesi.</string>
+    <string name="nav_speak_destination_prompt">Gitmek istediğiniz adresi veya yeri söyleyin.</string>
+    <string name="nav_gps_signal_lost">GPS sinyali kesildi. Navigasyon duraklatıldı.</string>
+
+    <string name="cd_back_to_main">Ana menüye geri dön.</string>
+    <string name="permission_camera_required">Bu modu kullanmak için kamera izni gereklidir.</string>
+    <string name="permission_location_required">Navigasyon için konum (GPS) izni gereklidir.</string>
+    <string name="cd_ai_mode_ocr">Metin okuma modunu etkinleştir. Kamera metinleri yüksek sesle okuyacaktır.</string>
+
+    <string name="mode_navigation">Erişilebilir Navigasyon</string>
+    <string name="mode_human_eye">Gönüllü Desteği (İnsan Gözü)</string>
+    <string name="mode_ai_eye">Yapay Zeka Asistanı (AI Gözü)</string>
+
+    <string name="cd_mode_ai_eye">Yapay zeka asistanı modunu başlat. Kamera nesneleri, parayı ve metinleri tanır.</string>
+    <string name="cd_mode_human_eye">Gönüllü bağlantı modunu başlat. Görüntülü arama ile bir gönüllüden yardım isteyin.</string>
+    <string name="cd_mode_navigation">Navigasyon modunu başlat. Çevrimdışı haritalar ve rota yardımı sağlar.</string>
+    <string name="cd_settings">Ayarlar. Uygulama tercihlerini ve dil ayarlarını değiştir.</string>
+
+    <string name="say_a_command">Bir komut söyleyin...</string>
+</resources>

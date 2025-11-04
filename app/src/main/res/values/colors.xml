@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <color name="color_background_dark">#000000</color>
+    <color name="color_text_light">#FFFFFF</color>
+
+    <color name="color_ai_primary">#FF3B30</color>
+
+    <color name="color_human_primary">#007AFF</color>
+
+    <color name="color_nav_primary">#34C759</color>
+
+    <color name="color_warning">#FF453A</color>
+
+    <color name="color_accent_yellow">#FFD60A</color>
+
+    <color name="color_grey_dark">#48484A</color>
+    <color name="color_grey_light">#E5E5EA</color>
+    <color name="color_navigation_primary">#FF6200EE</color>
+</resources>

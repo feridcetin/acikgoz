@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/color_background_dark">
+
+    <androidx.camera.view.PreviewView
+        android:id="@+id/preview_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_status_display"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/color_text_light"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:padding="8dp"
+        android:alpha="0.01"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Durum: Nesne Algılandı"
+        tools:alpha="1" />
+
+    <ImageButton
+        android:id="@+id/btn_back_to_main"
+        android:layout_width="@dimen/button_size_large"
+        android:layout_height="@dimen/button_size_large"
+        android:layout_margin="@dimen/margin_default"
+        android:background="@drawable/bg_circle_button"
+        android:backgroundTint="@color/color_navigation_primary"
+        android:src="@drawable/ic_back"
+        android:contentDescription="@string/cd_back_to_main"
+        app:tint="@color/color_text_light"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageButton
+        android:id="@+id/btn_ocr"
+        android:layout_width="@dimen/button_size_large"
+        android:layout_height="@dimen/button_size_large"
+        android:layout_margin="@dimen/margin_default"
+        android:background="@drawable/bg_circle_button"
+        android:backgroundTint="@color/color_navigation_primary"
+        android:src="@drawable/ic_text"
+        android:contentDescription="@string/cd_ai_mode_ocr"
+        app:tint="@color/color_text_light"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+    <ImageButton
+        android:id="@+id/btn_special"
+        android:layout_width="@dimen/button_size_large"
+        android:layout_height="@dimen/button_size_large"
+        android:layout_marginTop="@dimen/margin_large"
+        android:background="@drawable/bg_circle_button"
+        android:backgroundTint="@color/color_accent_yellow"
+        android:src="@drawable/ic_money"
+        android:contentDescription="Özel Tanıma. Para birimini ve rengi tanır."
+        app:tint="@color/color_background_dark"
+        app:layout_constraintTop_toBottomOf="@id/btn_ocr"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <ImageButton
+        android:id="@+id/btn_tts_command"
+        android:layout_width="@dimen/button_size_extra_large"
+        android:layout_height="@dimen/button_size_extra_large"
+        android:layout_marginBottom="@dimen/margin_large"
+        android:background="@drawable/bg_circle_button"
+        android:backgroundTint="@color/color_accent_yellow"
+        android:src="@drawable/ic_mic"
+        android:contentDescription="Tekrarlama veya Komut Düğmesi. Son okunan metni tekrarlar."
+        app:tint="@color/color_background_dark"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

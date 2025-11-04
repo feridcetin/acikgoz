@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/color_background_dark">
+
+    <Button
+        android:id="@+id/btn_ai_eye"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:text="@string/mode_ai_eye"
+        android:textSize="32sp"
+        android:textColor="@color/color_text_light"
+        android:backgroundTint="@color/color_ai_primary"
+        android:contentDescription="@string/cd_mode_ai_eye"
+        app:layout_constraintHeight_percent="0.33"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintBottom_toTopOf="@+id/btn_human_eye"/>
+
+    <Button
+        android:id="@+id/btn_human_eye"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:text="@string/mode_human_eye"
+        android:textSize="32sp"
+        android:textColor="@color/color_text_light"
+        android:backgroundTint="@color/color_human_primary"
+        android:contentDescription="@string/cd_mode_human_eye"
+        app:layout_constraintHeight_percent="0.33"
+        app:layout_constraintTop_toBottomOf="@+id/btn_ai_eye"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/btn_navigation"/>
+
+    <Button
+        android:id="@+id/btn_navigation"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:text="@string/mode_navigation"
+        android:textSize="32sp"
+        android:textColor="@color/color_text_light"
+        android:backgroundTint="@color/color_nav_primary"
+        android:contentDescription="@string/cd_mode_navigation"
+        app:layout_constraintHeight_percent="0.33"
+        app:layout_constraintTop_toBottomOf="@+id/btn_human_eye"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <ImageButton
+        android:id="@+id/btn_settings"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:src="@drawable/ic_settings"
+        android:contentDescription="@string/cd_settings"
+        android:background="@android:color/transparent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
