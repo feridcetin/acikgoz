@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:title="Genel Ayarlar">
+
+        <SwitchPreferenceCompat
+            android:key="pref_auto_sync"
+            android:title="Otomatik Senkronizasyon"
+            android:summary="Arka planda verileri otomatik senkronize et"
+            android:defaultValue="true"/>
+
+        <ListPreference
+            android:key="pref_theme"
+            android:title="Tema Seçimi"
+            android:summary="Uygulama temasını değiştir"
+            android:defaultValue="light"
+            android:entries="@array/theme_entries"
+            android:entryValues="@array/theme_values"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="Hakkında">
+
+        <Preference
+            android:key="pref_version"
+            android:title="Uygulama Versiyonu"
+            android:summary="1.0.0"/>
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

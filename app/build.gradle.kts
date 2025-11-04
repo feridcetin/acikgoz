@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.feridcetin.acikgoz"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -68,8 +68,9 @@ dependencies {
 
     // *** Gönüllü Bağlantısı (WebRTC) Bileşenleri ***
 
-    implementation("io.github.webrtc-sdk:android:125.6422.06.1")
+    ///implementation("io.github.webrtc-sdk:android:125.6422.06.1")
     implementation("io.getstream:stream-webrtc-android-ui:1.3.10")
+    implementation("io.getstream:stream-webrtc-android:1.3.10")
 
     implementation(libs.androidx.activity)
 
@@ -93,5 +94,6 @@ dependencies {
     // camera2 API'si üzerinden donanıma erişim
     implementation("androidx.camera:camera-camera2:$cameraXVersion")
 
-
+// 💡 EKSİK OLAN KÜTÜPHANE: Preference Fragment ve ilgili sınıfları kullanmak için gereklidir
+    implementation("androidx.preference:preference-ktx:1.2.1") // En son stabil sürümü kullanın
 }

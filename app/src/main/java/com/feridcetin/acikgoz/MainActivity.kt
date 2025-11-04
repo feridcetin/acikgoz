@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import java.util.Locale
@@ -39,8 +40,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Ayarlar Düğmesi
-        findViewById<Button>(R.id.btn_settings).setOnClickListener {
-            // Ayarlar aktivitesini başlat
+        findViewById<ImageButton>(R.id.btn_settings).setOnClickListener {
+            val intent = Intent(this, SettingsActivity::class.java)
+            startActivity(intent)
         }
     }
 

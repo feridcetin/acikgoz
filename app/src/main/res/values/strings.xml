@@ -41,4 +41,17 @@
     <string name="cd_settings">Ayarlar. Uygulama tercihlerini ve dil ayarlarını değiştir.</string>
 
     <string name="say_a_command">Bir komut söyleyin...</string>
+
+
+
+    <string-array name="theme_entries">
+        <item>Açık Tema</item>
+        <item>Koyu Tema</item>
+        <item>Sistem Varsayılanı</item>
+    </string-array>
+    <string-array name="theme_values">
+        <item>light</item>
+        <item>dark</item>
+        <item>system</item>
+    </string-array>
 </resources>
