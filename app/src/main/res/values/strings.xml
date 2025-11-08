@@ -79,4 +79,13 @@
     <string name="command_eye">göz</string>
     <string name="command_ai">ai</string>
     <string name="command_nav">navigasyon</string>
+    <string name="command_yonlendir">yönlendir</string>
+    <string name="command_yoltarifi">yol tarifi</string>
+
+    <string name="msg_special_mode_activated">Özel Tanıma Modu Başlatıldı.</string>
+
+    <string name="msg_mode_color">Renk tanıma modu aktif. Lütfen kamerayı bir renge yöneltin.</string>
+    <string name="msg_mode_currency">Para birimi tanıma modu aktif. Lütfen bir banknot gösterin.</string>
+
+
 </resources>

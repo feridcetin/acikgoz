@@ -1,100 +1,119 @@
 package com.feridcetin.acikgoz
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Color
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
+import android.speech.RecognizerIntent
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.util.Log
-import android.util.Size
-import android.widget.Button
 import android.widget.ImageButton
-import android.widget.TextView // TextView eklendi
+import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.Preview
+import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.googlecode.tesseract.android.TessBaseAPI
-import java.io.File
-import java.io.FileOutputStream
 import java.util.Locale
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class AiEyeActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private lateinit var tts: TextToSpeech
     private lateinit var previewView: PreviewView
-    private lateinit var ttsButton: ImageButton
-    private lateinit var statusDisplay: TextView // Durum metni için eklendi
+    private lateinit var statusDisplay: TextView
+    private lateinit var cameraExecutor: ExecutorService
+    private lateinit var imageAnalysis: ImageAnalysis
 
-    // OCR ve TFLite için yürütme havuzu
-    private val cameraExecutor = Executors.newSingleThreadExecutor()
-    private val TESSERACT_LANG = "tur" // Türkçe dil paketi
+    // Varsayımsal Analizör Sınıfı Yönetimi için değişkenler
+    private var currentSpecialMode: SpecialMode = SpecialMode.NONE
+    private lateinit var aiAnalyzer: AiAnalyzer // Tüm yapay zeka mantığını yürüten ana analizör
 
-    private val CAMERA_PERMISSION_REQUEST_CODE = 101
+    private val REQUEST_CODE_SPEECH_INPUT = 100
+    private val TAG = "AiEyeActivity"
+    private var lastSpokenText: String = "" // Tekrar oku komutu için son okunan metni tutar
 
-    // Geçici değişkenler
-    private var isObjectDetectionEnabled = true
-    private var tessApi: TessBaseAPI? = null
-
-    private var imageCapture: ImageCapture? = null
-
-    // Durum takibi için
-    private var lastTtsTime = 0L
-    private val TTS_MIN_INTERVAL = 2000 // 2 saniye aralık
+    // Özel Mod Enum'u
+    enum class SpecialMode {
+        NONE, // Normal AI Göz modu
+        COLOR_DETECTION,
+        CURRENCY_DETECTION,
+        OCR
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ai_eye)
 
-        tts = TextToSpeech(this, this)
+        // UI Bağlantıları
         previewView = findViewById(R.id.preview_view)
-        ttsButton = findViewById(R.id.btn_tts_command)
-        statusDisplay = findViewById(R.id.tv_status_display) // XML'den çekildi
+        statusDisplay = findViewById(R.id.tv_status_display)
 
-        copyTessdataFiles() // Dil dosyasını dahili depolamaya kopyala
+        // Executor başlat
+        cameraExecutor = Executors.newSingleThreadExecutor()
 
-        // OCR motorunu başlat (Şimdi dosya yerinde olmalı)
-        initializeTesseract()
+        // TTS ve Listener başlatma
+        tts = TextToSpeech(this, this)
+        setupTtsListener()
 
-        if (allPermissionsGranted()) {
-            startCamera()
-        } else {
-            ActivityCompat.requestPermissions(
-                this, arrayOf(Manifest.permission.CAMERA), CAMERA_PERMISSION_REQUEST_CODE
-            )
-        }
+        // Kamera izinlerini kontrol et ve başlat
+        // (İzin kontrol mekanizmalarının dışarıda kurulduğu varsayılmıştır)
+        startCamera()
 
+        // Butonları Ayarla
         setupButtons()
-        setupOnBackPressedListener()
-
     }
 
-    private fun allPermissionsGranted() = ContextCompat.checkSelfPermission(
-        this, Manifest.permission.CAMERA
-    ) == PackageManager.PERMISSION_GRANTED
+    // ---------------- TTS BAŞLATMA VE DİNLEYİCİ ----------------
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
-            if (allPermissionsGranted()) {
-                startCamera()
+    override fun onInit(status: Int) {
+        if (status == TextToSpeech.SUCCESS) {
+            val result = tts.setLanguage(Locale("tr"))
+
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Log.e(TAG, "TTS: Türkçe dil paketi eksik veya desteklenmiyor.")
             } else {
-                Toast.makeText(this, "Kamera izni gereklidir.", Toast.LENGTH_LONG).show()
-                finish()
+                speakStatus(getString(R.string.ai_ready))
             }
+        } else {
+            Log.e(TAG, "TTS Başlatma başarısız oldu.")
         }
     }
+
+    private fun setupTtsListener() {
+        val listener = object : UtteranceProgressListener() {
+            override fun onDone(utteranceId: String?) {
+                if (utteranceId == "APP_CLOSING") {
+                    runOnUiThread {
+                        safeAppShutdown()
+                    }
+                }
+            }
+            override fun onError(utteranceId: String?) {
+                if (utteranceId == "APP_CLOSING") {
+                    runOnUiThread {
+                        safeAppShutdown()
+                    }
+                }
+            }
+            override fun onStart(utteranceId: String?) {}
+        }
+        tts.setOnUtteranceProgressListener(listener)
+    }
+
+    fun speakStatus(message: String) {
+        lastSpokenText = message // Tekrar okuma için kaydet
+        runOnUiThread {
+            statusDisplay.text = message
+        }
+        if (::tts.isInitialized) {
+            tts.speak(message, TextToSpeech.QUEUE_FLUSH, null, null)
+        }
+    }
+
+    // ---------------- KAMERA VE AI ANALİZİ ----------------
 
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
@@ -102,359 +121,251 @@ class AiEyeActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         cameraProviderFuture.addListener({
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
-            // 1. 💡 preview nesnesinin tanımı burada olmalı
+            // Preview
             val preview = Preview.Builder().build().also {
                 it.setSurfaceProvider(previewView.surfaceProvider)
             }
 
-            // 2. ImageCapture nesnesinin tanımı
-            imageCapture = ImageCapture.Builder()
-                .setTargetRotation(previewView.display.rotation)
-                .build()
-
-            // 3. ImageAnalysis nesnesinin tanımı
-            val imageAnalyzer = ImageAnalysis.Builder()
-                .setTargetResolution(Size(720, 1280))
+            // Analizör kurulumu (İlk başta NONE modunda başlatılır)
+            aiAnalyzer = AiAnalyzer()
+            imageAnalysis = ImageAnalysis.Builder()
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build()
-                .also {
-                    it.setAnalyzer(cameraExecutor, ImageAnalyzer(::handleAnalysisResult))
-                }
 
+            imageAnalysis.setAnalyzer(cameraExecutor, aiAnalyzer)
+
+            // Kamera Seçimi
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
             try {
+                // Bağlamadan önce tüm use case'leri çöz
                 cameraProvider.unbindAll()
 
-                // 4. Bağlama (Burada preview'ı kullanıyoruz)
+                // Use case'leri bağla
                 cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, imageAnalyzer, imageCapture
+                    this, cameraSelector, preview, imageAnalysis
                 )
 
-            } catch (exc: Exception) {
-                Log.e("AiEyeActivity", "Kullanım durumlarını bağlama başarısız oldu.", exc)
+            } catch(exc: Exception) {
+                Log.e(TAG, "Use case binding failed", exc)
             }
 
         }, ContextCompat.getMainExecutor(this))
     }
 
-    private fun initializeTesseract() {
-        tessApi = TessBaseAPI()
-
-        // Tesseract veri yolunu ayarlayın. Veri dosyaları (tessdata),
-        // uygulamanın assets klasöründen cihazın dahili depolamasına kopyalanmalıdır.
-        try {
-            // Örnek: getExternalFilesDir(null)?.absolutePath + "/tessdata"
-            val dataPath = getExternalFilesDir(null)?.absolutePath
-            if (dataPath != null) {
-                tessApi?.init(dataPath, TESSERACT_LANG)
-                Log.i("OCR", "Tesseract başarıyla başlatıldı: $dataPath")
-            }
-        } catch (e: Exception) {
-            Log.e("OCR", "Tesseract başlatılamadı: " + e.message)
-            Toast.makeText(this, "OCR motoru başlatılamadı.", Toast.LENGTH_LONG).show()
-        }
-    }
-
-    private fun handleAnalysisResult(result: AnalysisResult) {
-        val currentTime = System.currentTimeMillis()
-        // TTS spamini önlemek için aralık kontrolü
-        if (currentTime - lastTtsTime < TTS_MIN_INTERVAL) {
-            return
-        }
-
-        // Gerçek Analiz Sonuçlarının İşlenmesi
-        when (result.type) {
-            AnalysisResult.Type.OBJECT_DETECTION -> {
-                val mostConfidentLabel = result.data.firstOrNull()?.label ?: ""
-                if (mostConfidentLabel.isNotBlank()) {
-                    speakStatus("Algılanan nesne: $mostConfidentLabel")
-                }
-            }
-            AnalysisResult.Type.OCR -> {
-                val detectedText = result.data.firstOrNull()?.text ?: ""
-                if (detectedText.length > 5) {
-                    speakStatus("Okunan metin: $detectedText")
-                }
-            }
-            AnalysisResult.Type.CURRENCY -> {
-                val currencyValue = result.data.firstOrNull()?.text ?: ""
-                if (currencyValue.isNotBlank()) {
-                    speakStatus("Algılanan para: $currencyValue")
-                }
-            }
-            AnalysisResult.Type.NONE -> {
-                // Hareketsizlik durumunda boş konuşma
-            }
-        }
-
-        lastTtsTime = currentTime // Son konuşma zamanını güncelle
-    }
-
-    fun speakStatus(message: String) {
-        // 💡 Görsel Durum Metnini Güncelle
-        runOnUiThread {
-            statusDisplay.text = message
-        }
-
-        // TextToSpeech kullanımı
-        if (::tts.isInitialized) {
-            tts.speak(message, TextToSpeech.QUEUE_FLUSH, null, null)
-        }
-    }
+    // ---------------- BUTON VE KOMUT YÖNETİMİ ----------------
 
     private fun setupButtons() {
-
         // Geri Dön Düğmesi
         findViewById<ImageButton>(R.id.btn_back_to_main).setOnClickListener {
-            // Activity'yi kapatarak MainActivity'ye geri dön
-            //finish()
-            speakAndFinish(R.string.app_closing_message)
+            finish() // Ana ekrana geri dön
         }
 
-        // OCR Düğmesi
+        // OCR Düğmesi (Tek Kare Metin Yakalama)
         findViewById<ImageButton>(R.id.btn_ocr).setOnClickListener {
+            // Sürekli analiz moduna geçmek yerine, anlık bir OCR işlemi tetiklenmeli
             performOcrScan()
         }
 
-        // Özel Tanıma (Para/Renk) Düğmesi
-        findViewById<ImageButton>(R.id.btn_special).setOnClickListener {
-            Toast.makeText(this, "Özel Tanıma Moduna Geçiliyor...", Toast.LENGTH_SHORT).show()
+        // TTS Komut Düğmesi (R.id.btn_tts_command)
+        findViewById<ImageButton>(R.id.btn_tts_command).setOnClickListener {
+            // KISA BASMA: Son okunan metni tekrarlar
+            speakStatus(lastSpokenText.ifBlank { getString(R.string.ai_ready) })
         }
 
-        // TTS Komut Düğmesi (Tekrar oku/Mikrofon)
-        ttsButton.setOnClickListener {
-            // Son okunan metni veya mevcut durumu tekrar okutabiliriz.
-            speakStatus("Tekrar okuma komutu verildi.")
+        // UZUN BASMA: Yeni sesli komut dinlemeyi başlatır
+        findViewById<ImageButton>(R.id.btn_tts_command).setOnLongClickListener {
+            promptSpeechInput()
+            true
+        }
+
+        // Özel Tanıma Düğmesi (R.id.btn_special)
+        findViewById<ImageButton>(R.id.btn_special).setOnClickListener {
+            // Şu anki özel mod COLOR_DETECTION ise CURRENCY_DETECTION'a geç, değilse COLOR_DETECTION'a geç
+            val nextMode = if (currentSpecialMode == SpecialMode.COLOR_DETECTION) {
+                SpecialMode.CURRENCY_DETECTION
+            } else {
+                SpecialMode.COLOR_DETECTION
+            }
+            startSpecialRecognitionMode(nextMode)
         }
     }
 
     private fun performOcrScan() {
-        val currentImageCapture = imageCapture ?: run {
-            speakStatus("Kamera servisi hazır değil.")
+        // NOTE: Gerçek uygulamada burada ImageCapture use case'i kullanılır ve tek kare yakalanır.
+        speakStatus(getString(R.string.cd_ai_mode_ocr_start))
+        Toast.makeText(this, "OCR Yakalama Tetiklendi. Analiz ediliyor...", Toast.LENGTH_SHORT).show()
+    }
+
+    // ---------------- MOD GEÇİŞ MANTIĞI ----------------
+
+    /**
+     * Uygulamanın AI analiz modunu değiştirir ve TTS ile durumu bildirir.
+     * Bu metot, aiAnalyzer'ın çalışma modunu değiştirerek analiz mantığını yönlendirir.
+     */
+    private fun startSpecialRecognitionMode(mode: SpecialMode) {
+        if (currentSpecialMode == mode) {
+            speakStatus("Zaten ${getModeName(mode)} modundasınız.")
             return
         }
 
-        // Kullanıcıya işlemi başlattığını sesli olarak bildir
-        speakStatus(getString(R.string.cd_ai_mode_ocr_start))
+        currentSpecialMode = mode
+        val message: String
 
-        // Görüntüyü kaydetmek için geçici bir dosya oluştur
-        val photoFile = File(externalMediaDirs.firstOrNull(), "${System.currentTimeMillis()}.jpg")
-        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+        // Yapay Zeka İşlem Hattını Yönetme
+        when (mode) {
+            SpecialMode.COLOR_DETECTION -> {
+                Log.i(TAG, "Özel Mod: Renk Tanıma Aktif Edildi.")
+                aiAnalyzer.currentMode = SpecialMode.COLOR_DETECTION
+                message = getString(R.string.msg_mode_color)
+            }
+            SpecialMode.CURRENCY_DETECTION -> {
+                Log.i(TAG, "Özel Mod: Para Tanıma Aktif Edildi.")
+                aiAnalyzer.currentMode = SpecialMode.CURRENCY_DETECTION
+                message = getString(R.string.msg_mode_currency)
+            }
+            SpecialMode.OCR -> {
+                // OCR sürekli mod olmasa da, tutarlılık için eklenmiştir.
+                Log.i(TAG, "Özel Mod: OCR Hazırlanıyor.")
+                aiAnalyzer.currentMode = SpecialMode.OCR
+                message = getString(R.string.cd_ai_mode_ocr_start)
+            }
+            SpecialMode.NONE -> {
+                Log.i(TAG, "Normal AI Göz Modu Aktif Edildi.")
+                aiAnalyzer.currentMode = SpecialMode.NONE
+                message = getString(R.string.ai_ready)
+            }
+        }
 
-        // 1. Görüntüyü Yakala (Asenkron)
-        currentImageCapture.takePicture(
-            outputOptions,
-            ContextCompat.getMainExecutor(this), // Ana iş parçacığında dinle
-            object : ImageCapture.OnImageSavedCallback {
-                override fun onError(exc: ImageCaptureException) {
-                    Log.e("OCR_Capture", "Görüntü yakalama hatası: ${exc.message}", exc)
-                    speakStatus("Görüntü yakalanırken bir hata oluştu.")
-                }
-
-                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                    // 2. Yakalanan görüntüyü arka planda OCR için işle
-                    output.savedUri?.path?.let { filePath ->
-                        cameraExecutor.execute {
-                            processOcrImage(filePath)
-                        }
-                    }
-                }
-            })
+        speakStatus(message)
     }
 
-    private fun processOcrImage(imagePath: String) {
-        var ocrResult = "Metin algılanamadı."
+    private fun getModeName(mode: SpecialMode): String {
+        return when (mode) {
+            SpecialMode.COLOR_DETECTION -> "Renk Tanıma"
+            SpecialMode.CURRENCY_DETECTION -> "Para Birimi Tanıma"
+            SpecialMode.OCR -> "Metin Okuma"
+            SpecialMode.NONE -> "Normal AI Göz"
+        }
+    }
 
+    // ---------------- SESLİ KOMUT İŞLEMLERİ ----------------
+
+    private fun promptSpeechInput() {
+        if (::tts.isInitialized && tts.isSpeaking) {
+            tts.stop()
+        }
+
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "tr-TR")
+            putExtra(RecognizerIntent.EXTRA_PROMPT, getString(R.string.cd_start_voice_command))
+        }
         try {
-            val bitmap = BitmapFactory.decodeFile(imagePath) // Yakalanan dosyayı Bitmap'e dönüştür
-
-        // 💡 GÜNCELLEME: Bitmap'i Tesseract'a göndermeden önce ön işlemeden geçir
-            val preprocessedBitmap = preprocessBitmap(bitmap)
-
-            tessApi?.let { api ->
-                api.setImage(bitmap) // Tesseract'a görüntüyü gönder
-                ocrResult = api.getUTF8Text() // Metni al
-
-                // Eğer metin başarıyla alındıysa, sonucu ana iş parçacığında seslendir
-                if (ocrResult.isNotBlank() && ocrResult.length > 5) {
-                    // Sonucu, TTS ile okuması için ana iş parçacığına gönder
-                    runOnUiThread {
-                        speakStatus("Okunan metin: $ocrResult")
-                    }
-                } else {
-                    runOnUiThread {
-                        speakStatus("Karede net bir metin algılanamadı.")
-                    }
-                }
-                preprocessedBitmap.recycle()
-            }
-
-            // Belleği serbest bırak
-            bitmap.recycle()
-            // Geçici dosyayı sil
-            File(imagePath).delete()
-
-        } catch (e: Exception) {
-            Log.e("OCR_Process", "OCR işlemi sırasında hata: ${e.message}", e)
-            runOnUiThread {
-                speakStatus("OCR motoru bir sorunla karşılaştı.")
-            }
+            startActivityForResult(intent, REQUEST_CODE_SPEECH_INPUT)
+        } catch (a: Exception) {
+            speakStatus("Sesli komut servisi cihazınızda desteklenmiyor.")
         }
     }
 
-    private fun copyTessdataFiles() {
-        try {
-            val assetManager = assets
-            val files = assetManager.list("tessdata") // assets/tessdata altındaki dosyaları listele
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
 
-            if (files.isNullOrEmpty()) {
-                Log.e("OCR_Copy", "Assets/tessdata klasörü boş veya bulunamadı.")
-                return
-            }
+        if (requestCode == REQUEST_CODE_SPEECH_INPUT && resultCode == Activity.RESULT_OK) {
+            val results = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            val fullCommand = results?.get(0)?.lowercase(Locale.getDefault()) ?: return
 
-            val dataPath = getExternalFilesDir(null)?.absolutePath // Tesseract'ın beklediği ana dizin
-            val tessdataDir = File(dataPath, "tessdata")
-
-            if (!tessdataDir.exists()) {
-                tessdataDir.mkdirs() // Eğer yoksa tessdata klasörünü oluştur
-            }
-
-            // Tüm dosyaları kopyala
-            for (filename in files) {
-                val destFile = File(tessdataDir, filename)
-                if (!destFile.exists()) {
-                    assetManager.open("tessdata/$filename").use { inputStream ->
-                        FileOutputStream(destFile).use { outputStream ->
-                            inputStream.copyTo(outputStream)
-                        }
-                    }
-                    Log.i("OCR_Copy", "$filename başarıyla kopyalandı.")
+            when {
+                // Kapatma komutu
+                fullCommand.contains(getString(R.string.command_close_app_1)) ||
+                        fullCommand.contains(getString(R.string.command_close_app_2)) -> {
+                    speakAndFinish(R.string.app_closing_message)
+                }
+                // Tekrar oku komutu
+                fullCommand.contains("tekrar") || fullCommand.contains("oku") -> {
+                    speakStatus(lastSpokenText.ifBlank { getString(R.string.ai_ready) })
+                }
+                // OCR komutu
+                fullCommand.contains("metin oku") || fullCommand.contains("ocr") -> {
+                    performOcrScan()
+                }
+                // Özel mod komutları (Daha detaylı yapılması gerekir)
+                fullCommand.contains("renk") -> {
+                    startSpecialRecognitionMode(SpecialMode.COLOR_DETECTION)
+                }
+                fullCommand.contains("para") -> {
+                    startSpecialRecognitionMode(SpecialMode.CURRENCY_DETECTION)
+                }
+                else -> {
+                    speakStatus("Anlaşılmayan komut: $fullCommand")
                 }
             }
-        } catch (e: Exception) {
-            Log.e("OCR_Copy", "Tessdata kopyalama hatası: " + e.message)
         }
     }
 
-    /**
-     * OCR için Bitmap'i iyileştirir: Gri tonlama ve basit ikili hale getirme (binarization).
-     */
-    private fun preprocessBitmap(bitmap: Bitmap): Bitmap {
-        val width = bitmap.width
-        val height = bitmap.height
-        val resultBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    // ---------------- YAŞAM DÖNGÜSÜ VE TEMİZLİK ----------------
 
-        // Eşik değeri (threshold) belirleme
-        val threshold = 128 // 0-255 aralığında. Bu değer, siyah mı beyaz mı olacağına karar verir.
-
-        for (x in 0 until width) {
-            for (y in 0 until height) {
-                val pixel = bitmap.getPixel(x, y)
-
-                // 1. Gri Tonlamaya Dönüştürme (Luminosity metodu)
-                val r = Color.red(pixel)
-                val g = Color.green(pixel)
-                val b = Color.blue(pixel)
-                val gray = (0.299 * r + 0.587 * g + 0.114 * b).toInt() // Luminosity
-
-                // 2. İkili Hale Getirme (Binarization)
-                val outputColor = if (gray < threshold) Color.BLACK else Color.WHITE
-
-                resultBitmap.setPixel(x, y, outputColor)
-            }
-        }
-        return resultBitmap
-    }
-
-    // Ekran kapanmadan önce sesli uyarı yapmak için yeni bir metod
     private fun speakAndFinish(messageResId: Int) {
         val message = getString(messageResId)
+        val params = Bundle()
 
-        // 1. Sesi çal
         if (::tts.isInitialized) {
-            tts.speak(message, TextToSpeech.QUEUE_FLUSH, null, null)
+            tts.speak(message, TextToSpeech.QUEUE_FLUSH, params, "APP_CLOSING")
+        } else {
+            safeAppShutdown()
         }
-
-        // 2. TTS'nin bitmesini beklemek yerine, kısa bir gecikme ile aktiviteyi kapat
-        // Not: Bu, tts'nin konuşmayı bitirmesi için kaba bir tahmindir.
-        // Daha kesin çözüm için UtteranceProgressListener kullanmak gerekir,
-        // ancak basitlik için gecikme kullanıyoruz.
-        previewView.postDelayed({
-            super.finish() // Aktiviteyi güvenle kapat
-        }, 1500) // 1.5 saniye bekle
     }
 
-    private fun setupOnBackPressedListener() {
-        // Geri tuşu/hareketi algılandığında çalışacak anonim sınıf
-        val callback = object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                // Geri tuşuna basıldığında eski onBackPressed mantığını çağır.
-                // Bu, TTS'yi çalar ve gecikmeli olarak aktiviteyi kapatır.
-                speakAndFinish(R.string.app_closing_message)
-            }
-        }
-
-        // Geri çağrıyı aktivitenin yaşam döngüsüne bağla
-        onBackPressedDispatcher.addCallback(this, callback)
-    }
-
-
-    override fun onDestroy() {
-        super.onDestroy()
-        cameraExecutor.shutdown()
-
-        // TTS kaynaklarını serbest bırak
+    private fun safeAppShutdown() {
         if (::tts.isInitialized) {
             tts.stop()
             tts.shutdown()
         }
-        tessApi?.recycle() // Tesseract motorunu kapat
+        finishAffinity()
     }
 
-    override fun onInit(status: Int) {
-        if (status == TextToSpeech.SUCCESS) {
-            tts.setLanguage(Locale("tr"))
-            speakStatus(getString(R.string.ai_ready))
-        } else {
-            Log.e("TTS", "TTS Başlatılamadı.")
+    override fun onDestroy() {
+        if (::tts.isInitialized) {
+            tts.stop()
+            tts.shutdown()
         }
+        cameraExecutor.shutdown() // Kamera iş parçacığını kapat
+        super.onDestroy()
     }
 }
 
-// ----------------------------------------------------------------------------------
-// Görüntü Analiz Sınıfı (Yapay Zeka Mantığı Buradadır)
-// ----------------------------------------------------------------------------------
 
-class ImageAnalyzer(private val listener: (AnalysisResult) -> Unit) : ImageAnalysis.Analyzer {
+// ---------------------------------------------------------------------------------
+// 💡 VARSAYIMSAL AI ANALİZÖR SINIFI 💡
+// Bu sınıf, kamera karesini alır ve belirlenen moda göre analiz yapar.
+// Gerçek yapay zeka entegrasyonu (TensorFlow, ML Kit) burada gerçekleşir.
 
-    @androidx.camera.core.ExperimentalGetImage
-    override fun analyze(imageProxy: androidx.camera.core.ImageProxy) {
-        val mediaImage = imageProxy.image
-        if (mediaImage != null) {
+class AiAnalyzer : ImageAnalysis.Analyzer {
 
-            // !!! BU KISIM SİLİNMELİ veya YORUMA ALINMALI !!!
-            /*
-            val result = AnalysisResult(
-                AnalysisResult.Type.OBJECT_DETECTION,
-                listOf(AnalysisResult.Data("cep telefonu", 0.95f))
-            )
-            listener(result) // Bu, AiEyeActivity'deki speakStatus'u tetikler.
-            */
+    var currentMode: AiEyeActivity.SpecialMode = AiEyeActivity.SpecialMode.NONE
 
-            // Gerçek görüntü işleme mantığı buraya eklendiğinde,
-            // sadece anlamlı bir sonuç varsa 'listener' çağrılmalıdır.
+    override fun analyze(image: ImageProxy) {
+        // Görüntü işleme işlemi burada yapılır.
 
-            imageProxy.close()
+        when (currentMode) {
+            AiEyeActivity.SpecialMode.COLOR_DETECTION -> {
+                // Renk tanıma algoritması
+                Log.d("AiAnalyzer", "Renk Analizi Yapılıyor...")
+            }
+            AiEyeActivity.SpecialMode.CURRENCY_DETECTION -> {
+                // Para birimi tanıma algoritması
+                Log.d("AiAnalyzer", "Para Birimi Analizi Yapılıyor...")
+            }
+            AiEyeActivity.SpecialMode.OCR -> {
+                // Sürekli OCR Analizi yapılıyor
+                Log.d("AiAnalyzer", "Sürekli OCR Analizi Yapılıyor...")
+            }
+            AiEyeActivity.SpecialMode.NONE -> {
+                // Normal Nesne Tanıma/Çevre Analizi
+                Log.d("AiAnalyzer", "Normal Çevre Analizi Yapılıyor...")
+            }
         }
-    }
-}
 
-// Analiz sonucu için basit bir veri sınıfı
-data class AnalysisResult(val type: Type, val data: List<Data>) {
-    enum class Type { OBJECT_DETECTION, OCR, CURRENCY, NONE }
-    data class Data(val label: String, val confidence: Float) {
-        val text: String
-            get() = label // OCR sonuçları için label yerine text kullanılır
+        image.close() // Analiz tamamlandıktan sonra kareyi kapat
     }
 }

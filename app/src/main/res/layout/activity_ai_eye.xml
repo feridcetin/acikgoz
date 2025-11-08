@@ -4,81 +4,98 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/color_background_dark">
+    android:background="@color/color_background_dark"
+    tools:context=".AiEyeActivity">
 
     <androidx.camera.view.PreviewView
         android:id="@+id/preview_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintHeight_percent="0.65"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/tv_status_display" />
 
     <TextView
         android:id="@+id/tv_status_display"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/color_background_gray"
+        android:textColor="@color/color_text_light"
+        android:textSize="@dimen/text_size_status"
+        android:padding="@dimen/margin_default"
+        android:textAlignment="center"
+        tools:text="Yapay Zeka göz modu hazır. Etrafı tarıyorum..."
+        app:layout_constraintTop_toBottomOf="@id/preview_view"
+        app:layout_constraintBottom_toTopOf="@+id/guideline_btn_row"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_btn_row"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/color_text_light"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:padding="8dp"
-        android:alpha="0.01"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="Durum: Nesne Algılandı"
-        tools:alpha="1" />
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.8" />
 
     <ImageButton
         android:id="@+id/btn_back_to_main"
         android:layout_width="@dimen/button_size_large"
         android:layout_height="@dimen/button_size_large"
-        android:layout_margin="@dimen/margin_default"
+        android:layout_marginStart="@dimen/margin_default"
         android:background="@drawable/bg_circle_button"
         android:backgroundTint="@color/color_navigation_primary"
         android:src="@drawable/ic_back"
         android:contentDescription="@string/cd_back_to_main"
         app:tint="@color/color_text_light"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/guideline_btn_row"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
     <ImageButton
         android:id="@+id/btn_ocr"
         android:layout_width="@dimen/button_size_large"
         android:layout_height="@dimen/button_size_large"
-        android:layout_margin="@dimen/margin_default"
         android:background="@drawable/bg_circle_button"
-        android:backgroundTint="@color/color_navigation_primary"
-        android:src="@drawable/ic_text"
+        android:backgroundTint="@color/color_accent"
+        android:src="@drawable/ic_ocr"
         android:contentDescription="@string/cd_ai_mode_ocr"
         app:tint="@color/color_text_light"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintStart_toEndOf="@+id/btn_back_to_main"
+        app:layout_constraintTop_toTopOf="@+id/btn_back_to_main"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_back_to_main"
+        app:layout_constraintEnd_toStartOf="@+id/btn_tts_command"
+        app:layout_constraintHorizontal_chainStyle="packed" />
+
+    <ImageButton
+        android:id="@+id/btn_tts_command"
+        android:layout_width="@dimen/button_size_huge"
+        android:layout_height="@dimen/button_size_huge"
+        android:layout_marginStart="@dimen/margin_default"
+        android:background="@drawable/bg_circle_button"
+        android:backgroundTint="@color/color_accent_yellow"
+        android:src="@drawable/ic_mic"
+        android:contentDescription="@string/cd_start_voice_command"
+        app:tint="@color/color_background_dark"
+        app:layout_constraintStart_toEndOf="@+id/btn_ocr"
+        app:layout_constraintTop_toTopOf="@+id/btn_back_to_main"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_back_to_main"
+        app:layout_constraintEnd_toStartOf="@+id/btn_special" />
+
     <ImageButton
         android:id="@+id/btn_special"
         android:layout_width="@dimen/button_size_large"
         android:layout_height="@dimen/button_size_large"
-        android:layout_marginTop="@dimen/margin_large"
+        android:layout_marginEnd="@dimen/margin_default"
         android:background="@drawable/bg_circle_button"
-        android:backgroundTint="@color/color_accent_yellow"
+        android:backgroundTint="@color/color_primary"
         android:src="@drawable/ic_money"
-        android:contentDescription="Özel Tanıma. Para birimini ve rengi tanır."
-        app:tint="@color/color_background_dark"
-        app:layout_constraintTop_toBottomOf="@id/btn_ocr"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <ImageButton
-        android:id="@+id/btn_tts_command"
-        android:layout_width="@dimen/button_size_extra_large"
-        android:layout_height="@dimen/button_size_extra_large"
-        android:layout_marginBottom="@dimen/margin_large"
-        android:background="@drawable/bg_circle_button"
-        android:backgroundTint="@color/color_accent_yellow"
-        android:src="@drawable/ic_mic"
-        android:contentDescription="Tekrarlama veya Komut Düğmesi. Son okunan metni tekrarlar."
-        app:tint="@color/color_background_dark"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:contentDescription="@string/cd_ai_mode_special"
+        app:tint="@color/color_text_light"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/btn_back_to_main"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_back_to_main" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,67 +1,115 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/color_background_dark">
+    android:background="@color/color_background_dark"
+    tools:context=".MainActivity">
 
-    <Button
+    <TextView
+        android:id="@+id/tv_main_header"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_large"
+        android:text="@string/main_header_text"
+        android:textColor="@color/color_text_light"
+        android:textSize="@dimen/text_size_command"
+        android:textAlignment="center"
+        android:paddingStart="@dimen/margin_default"
+        android:paddingEnd="@dimen/margin_default"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_v_center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+
+    <ImageButton
         android:id="@+id/btn_ai_eye"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:text="@string/mode_ai_eye"
-        android:textSize="32sp"
-        android:textColor="@color/color_text_light"
-        android:backgroundTint="@color/color_ai_primary"
-        android:contentDescription="@string/cd_mode_ai_eye"
-        app:layout_constraintHeight_percent="0.33"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_width="@dimen/button_size_extra_large"
+        android:layout_height="@dimen/button_size_extra_large"
+        android:layout_marginEnd="@dimen/margin_large"
+        android:background="@drawable/bg_circle_button"
+        android:backgroundTint="@color/color_accent_yellow"
+        android:src="@drawable/ic_eye"
+        android:contentDescription="@string/cd_ai_mode_eye"
+        app:tint="@color/color_background_dark"
         app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintBottom_toTopOf="@+id/btn_human_eye"/>
+        app:layout_constraintEnd_toStartOf="@+id/guideline_v_center"
+        app:layout_constraintTop_toBottomOf="@id/tv_main_header"
+        app:layout_constraintBottom_toTopOf="@+id/btn_voice_command"
+        app:layout_constraintVertical_bias="0.5"/>
 
-    <Button
-        android:id="@+id/btn_human_eye"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:text="@string/mode_human_eye"
-        android:textSize="32sp"
-        android:textColor="@color/color_text_light"
-        android:backgroundTint="@color/color_human_primary"
-        android:contentDescription="@string/cd_mode_human_eye"
-        app:layout_constraintHeight_percent="0.33"
-        app:layout_constraintTop_toBottomOf="@+id/btn_ai_eye"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/btn_navigation"/>
-
-    <Button
+    <ImageButton
         android:id="@+id/btn_navigation"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:text="@string/mode_navigation"
-        android:textSize="32sp"
-        android:textColor="@color/color_text_light"
-        android:backgroundTint="@color/color_nav_primary"
-        android:contentDescription="@string/cd_mode_navigation"
-        app:layout_constraintHeight_percent="0.33"
-        app:layout_constraintTop_toBottomOf="@+id/btn_human_eye"
+        android:layout_width="@dimen/button_size_extra_large"
+        android:layout_height="@dimen/button_size_extra_large"
+        android:layout_marginStart="@dimen/margin_large"
+        android:background="@drawable/bg_circle_button"
+        android:backgroundTint="@color/color_navigation_primary"
+        android:src="@drawable/ic_navigation"
+        android:contentDescription="@string/cd_navigation_mode"
+        app:tint="@color/color_text_light"
+        app:layout_constraintStart_toEndOf="@+id/guideline_v_center"
+        app:layout_constraintTop_toTopOf="@+id/btn_ai_eye"
+        app:layout_constraintBottom_toBottomOf="@+id/btn_ai_eye" />
+
+    <ImageButton
+        android:id="@+id/btn_voice_command"
+        android:layout_width="@dimen/button_size_huge"
+        android:layout_height="@dimen/button_size_huge"
+        android:layout_marginTop="@dimen/margin_large"
+        android:layout_marginBottom="@dimen/margin_extra_large"
+        android:background="@drawable/bg_circle_button"
+        android:backgroundTint="@color/color_primary"
+        android:src="@drawable/ic_mic"
+        android:contentDescription="@string/cd_start_voice_command"
+        app:tint="@color/color_text_light"
+        app:layout_constraintTop_toBottomOf="@+id/btn_ai_eye"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <ImageButton
         android:id="@+id/btn_settings"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:layout_width="@dimen/button_size_medium"
+        android:layout_height="@dimen/button_size_medium"
         android:src="@drawable/ic_settings"
         android:contentDescription="@string/cd_settings"
         android:background="@android:color/transparent"
+        app:tint="@color/color_text_light_secondary"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"/>
+        android:layout_marginTop="@dimen/margin_large"
+        android:layout_marginEnd="@dimen/margin_large"/>
+
+    <TextView
+        android:id="@+id/tv_ai_eye_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Yapay Zeka Gözü"
+        android:textColor="@color/color_text_light"
+        android:textSize="@dimen/text_size_status"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/btn_ai_eye"
+        app:layout_constraintEnd_toEndOf="@+id/btn_ai_eye"
+        app:layout_constraintStart_toStartOf="@+id/btn_ai_eye" />
+
+    <TextView
+        android:id="@+id/tv_navigation_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Navigasyon"
+        android:textColor="@color/color_text_light"
+        android:textSize="@dimen/text_size_status"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/btn_navigation"
+        app:layout_constraintEnd_toEndOf="@+id/btn_navigation"
+        app:layout_constraintStart_toStartOf="@+id/btn_navigation" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

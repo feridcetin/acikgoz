@@ -120,9 +120,15 @@ class NavigationActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             // 💡 DİNAMİK HEDEF AYRIŞTIRMA MANTIĞI
             when {
-                fullCommand.contains("yol tarifi") || fullCommand.contains("git") || fullCommand.contains("navigasyon") -> {
+                fullCommand.contains("yol tarifi")
+                        || fullCommand.contains("git")
+                        || fullCommand.contains("navigasyon")
+                        || fullCommand.contains("başlat")
+                        || fullCommand.contains("götür")
+                        || fullCommand.contains("yolu")
+                        || fullCommand.contains("rota") -> {
 
-                    val keywords = listOf("yol tarifi", "git", "navigasyon", "başlat", "götür", "yolu")
+                    val keywords = listOf("yol tarifi", "git", "navigasyon", "başlat", "götür", "yolu","rota")
                     var destination = fullCommand
 
                     // Anahtar kelimeleri komutun başından/sonundan çıkar
