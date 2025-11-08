@@ -19,4 +19,12 @@
     <color name="color_grey_dark">#48484A</color>
     <color name="color_grey_light">#E5E5EA</color>
     <color name="color_navigation_primary">#FF6200EE</color>
+
+
+
+    <color name="color_primary">#2C3E50</color>
+    <color name="color_primary_dark">#1F2E3E</color>
+    <color name="color_accent">#E74C3C</color>
+    <color name="color_background_gray">#2C2C2E</color>
+    <color name="color_text_light_secondary">#AAAAAA</color>
 </resources>

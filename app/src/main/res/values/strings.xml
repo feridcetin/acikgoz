@@ -54,4 +54,29 @@
         <item>dark</item>
         <item>system</item>
     </string-array>
+
+    <string name="cd_ai_mode_ocr_start">OCR işlemi başlatılıyor. Lütfen kamerayı okumak istediğiniz metne sabitleyin.</string>
+
+    <string name="app_closing_message">Uygulama kapatılıyor. Güvenliğiniz için dikkatli olun.</string>
+    <string name="command_close_app_1">kapat</string>
+    <string name="command_close_app_2">çıkış</string>
+    <string name="cd_navigation_mode">Navigasyon Modu. Hedefe yol tarifi alır.</string>
+
+
+
+    <string name="nav_ready">Navigasyon modu hazır. Lütfen hedefinizi söyleyin.</string>
+    <string name="map_area_placeholder">Navigasyon Harita Alanı</string>
+
+    <string name="main_header_text">Lütfen bir mod seçin veya komut verin</string>
+
+    <string name="cd_start_voice_command">Sesli komut başlatmak için dokunun</string>
+    <string name="say_your_destination">Lütfen hedefinizi söyleyin</string>
+
+    <string name="cd_ai_mode_eye">Yapay Zeka Göz Modu. Çevreyi tanımlar.</string>
+    <string name="cd_ai_mode_special">Özel Tanıma. Para birimini ve rengi tanır.</string>
+
+
+    <string name="command_eye">göz</string>
+    <string name="command_ai">ai</string>
+    <string name="command_nav">navigasyon</string>
 </resources>

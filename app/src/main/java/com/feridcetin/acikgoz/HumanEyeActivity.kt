@@ -78,6 +78,14 @@ class HumanEyeActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         tts.shutdown()
         // PeerConnectionFactory'nin de sonlandırılması gerekir
         peerConnectionFactory.dispose()
+
+        // 💡 KONTROL EKLEME:
+        // lateinit olarak tanımlanan bir özelliğin (property) initialize edilip edilmediğini kontrol eder.
+        if (::peerConnectionFactory.isInitialized) {
+            // Eğer başlatılmışsa, kaynakları temizle (clean up)
+            peerConnectionFactory.dispose() // Varsayımsal temizleme metodu
+        }
+        super.onDestroy()
     }
 
     private fun checkPermissionsAndStartCall() {

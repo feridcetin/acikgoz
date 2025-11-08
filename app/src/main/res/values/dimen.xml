@@ -9,4 +9,12 @@
     <dimen name="margin_default">16dp</dimen>
     <dimen name="margin_large">24dp</dimen>
 
+    <dimen name="margin_extra_large">32dp</dimen>
+
+    <dimen name="button_size_small">40dp</dimen>
+    <dimen name="button_size_medium">56dp</dimen>
+    <dimen name="button_size_huge">120dp</dimen>
+    <dimen name="text_size_status">20sp</dimen>
+    <dimen name="text_size_command">24sp</dimen>
+
 </resources>
