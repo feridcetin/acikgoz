@@ -182,7 +182,7 @@ class NavigationActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 val webIntentUri = Uri.parse("geo:0,0?q=$destination")
                 val webMapIntent = Intent(Intent.ACTION_VIEW, webIntentUri)
                 startActivity(webMapIntent)
-                speakStatus("Google Haritalar uygulaması bulunamadı. Harita web üzerinde açıldı.")
+                //speakStatus("Google Haritalar uygulaması bulunamadı. Harita web üzerinde açıldı.")
             }
 
         } catch (e: Exception) {

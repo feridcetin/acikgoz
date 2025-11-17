@@ -2,20 +2,18 @@
 <androidx.preference.PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <androidx.preference.PreferenceCategory
-        app:title="@string/settings_header_general">
+    <androidx.preference.PreferenceCategory app:title="@string/settings_header_general">
 
         <androidx.preference.ListPreference
             app:key="theme_preference"
             app:title="@string/settings_title_theme"
             app:defaultValue="system"
             app:entries="@array/theme_entries"
-            app:entryValues="@array/theme_values"
-            app:icon="@drawable/ic_theme" />
+            app:entryValues="@array/theme_values" />
+
     </androidx.preference.PreferenceCategory>
 
-    <androidx.preference.PreferenceCategory
-        app:title="@string/settings_header_voice">
+    <androidx.preference.PreferenceCategory app:title="@string/settings_header_voice">
 
         <androidx.preference.SeekBarPreference
             app:key="tts_speed"
@@ -24,18 +22,8 @@
             android:min="50"
             android:max="150"
             app:defaultValue="100"
-            app:showSeekBarValue="true"
-            app:icon="@drawable/ic_speed" />
+            app:showSeekBarValue="true" />
 
-        <androidx.preference.SeekBarPreference
-            app:key="tts_pitch"
-            app:title="@string/settings_title_tts_pitch"
-            app:summary="@string/settings_summary_tts_pitch"
-            android:min="50"
-            android:max="150"
-            app:defaultValue="100"
-            app:showSeekBarValue="true"
-            app:icon="@drawable/ic_volume" />
     </androidx.preference.PreferenceCategory>
 
 </androidx.preference.PreferenceScreen>

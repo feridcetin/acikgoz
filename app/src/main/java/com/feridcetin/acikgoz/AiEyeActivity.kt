@@ -7,6 +7,7 @@ import android.speech.RecognizerIntent
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
+import android.view.Surface
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
@@ -127,8 +128,14 @@ class AiEyeActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
 
             // Analizör kurulumu (İlk başta NONE modunda başlatılır)
-            aiAnalyzer = AiAnalyzer()
+            aiAnalyzer = AiAnalyzer(this)
+
+            // 💡 HATA DÜZELTMESİ: setTargetRotation'ı güvenli çağrı ile ekle
+            // previewView.display null ise Surface.ROTATION_0 kullan
+            val rotation = previewView.display?.rotation ?: Surface.ROTATION_0
+
             imageAnalysis = ImageAnalysis.Builder()
+                .setTargetRotation(rotation) // Güvenli döndürme ayarı
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build()
 
@@ -182,10 +189,10 @@ class AiEyeActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Özel Tanıma Düğmesi (R.id.btn_special)
         findViewById<ImageButton>(R.id.btn_special).setOnClickListener {
             // Şu anki özel mod COLOR_DETECTION ise CURRENCY_DETECTION'a geç, değilse COLOR_DETECTION'a geç
-            val nextMode = if (currentSpecialMode == SpecialMode.COLOR_DETECTION) {
-                SpecialMode.CURRENCY_DETECTION
-            } else {
-                SpecialMode.COLOR_DETECTION
+            val nextMode = when (currentSpecialMode) {
+                SpecialMode.COLOR_DETECTION -> SpecialMode.CURRENCY_DETECTION
+                SpecialMode.CURRENCY_DETECTION -> SpecialMode.NONE
+                else -> SpecialMode.COLOR_DETECTION
             }
             startSpecialRecognitionMode(nextMode)
         }
@@ -204,8 +211,10 @@ class AiEyeActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
      * Bu metot, aiAnalyzer'ın çalışma modunu değiştirerek analiz mantığını yönlendirir.
      */
     private fun startSpecialRecognitionMode(mode: SpecialMode) {
-        if (currentSpecialMode == mode) {
-            speakStatus("Zaten ${getModeName(mode)} modundasınız.")
+
+        // Mod değişikliği sadece NONE modundan özel moda geçişte veya modlar arasında geçişte yapılır.
+        if (currentSpecialMode == mode && mode != SpecialMode.NONE) {
+            speakStatus("Zaten ${getModeName(mode)} modundasınız. Modu kapatmak için tekrar basın.")
             return
         }
 
@@ -225,8 +234,8 @@ class AiEyeActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 message = getString(R.string.msg_mode_currency)
             }
             SpecialMode.OCR -> {
-                // OCR sürekli mod olmasa da, tutarlılık için eklenmiştir.
-                Log.i(TAG, "Özel Mod: OCR Hazırlanıyor.")
+                // OCR genellikle anlık yakalama içindir, sürekli mod için burayı kullanın
+                Log.i(TAG, "Özel Mod: OCR Hazırlanıyor (Sürekli).")
                 aiAnalyzer.currentMode = SpecialMode.OCR
                 message = getString(R.string.cd_ai_mode_ocr_start)
             }
@@ -244,7 +253,7 @@ class AiEyeActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         return when (mode) {
             SpecialMode.COLOR_DETECTION -> "Renk Tanıma"
             SpecialMode.CURRENCY_DETECTION -> "Para Birimi Tanıma"
-            SpecialMode.OCR -> "Metin Okuma"
+            SpecialMode.OCR -> "Metin Okuma (Sürekli)"
             SpecialMode.NONE -> "Normal AI Göz"
         }
     }
@@ -286,15 +295,20 @@ class AiEyeActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     speakStatus(lastSpokenText.ifBlank { getString(R.string.ai_ready) })
                 }
                 // OCR komutu
-                fullCommand.contains("metin oku") || fullCommand.contains("ocr") -> {
+                fullCommand.contains("metin oku") || fullCommand.contains("yazı oku") -> {
                     performOcrScan()
                 }
-                // Özel mod komutları (Daha detaylı yapılması gerekir)
+                // Renk Modu komutu
                 fullCommand.contains("renk") -> {
                     startSpecialRecognitionMode(SpecialMode.COLOR_DETECTION)
                 }
-                fullCommand.contains("para") -> {
+                // Para Modu komutu
+                fullCommand.contains("para") || fullCommand.contains("banknot") -> {
                     startSpecialRecognitionMode(SpecialMode.CURRENCY_DETECTION)
+                }
+                // Normal moda dönme komutu
+                fullCommand.contains("normal") || fullCommand.contains("kapat") -> {
+                    startSpecialRecognitionMode(SpecialMode.NONE)
                 }
                 else -> {
                     speakStatus("Anlaşılmayan komut: $fullCommand")
@@ -340,6 +354,7 @@ class AiEyeActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 // Bu sınıf, kamera karesini alır ve belirlenen moda göre analiz yapar.
 // Gerçek yapay zeka entegrasyonu (TensorFlow, ML Kit) burada gerçekleşir.
 
+/*
 class AiAnalyzer : ImageAnalysis.Analyzer {
 
     var currentMode: AiEyeActivity.SpecialMode = AiEyeActivity.SpecialMode.NONE
@@ -350,22 +365,24 @@ class AiAnalyzer : ImageAnalysis.Analyzer {
         when (currentMode) {
             AiEyeActivity.SpecialMode.COLOR_DETECTION -> {
                 // Renk tanıma algoritması
-                Log.d("AiAnalyzer", "Renk Analizi Yapılıyor...")
+                // Log.d("AiAnalyzer", "Renk Analizi Yapılıyor...")
             }
             AiEyeActivity.SpecialMode.CURRENCY_DETECTION -> {
                 // Para birimi tanıma algoritması
-                Log.d("AiAnalyzer", "Para Birimi Analizi Yapılıyor...")
+                // Log.d("AiAnalyzer", "Para Birimi Analizi Yapılıyor...")
             }
             AiEyeActivity.SpecialMode.OCR -> {
                 // Sürekli OCR Analizi yapılıyor
-                Log.d("AiAnalyzer", "Sürekli OCR Analizi Yapılıyor...")
+                // Log.d("AiAnalyzer", "Sürekli OCR Analizi Yapılıyor...")
             }
             AiEyeActivity.SpecialMode.NONE -> {
                 // Normal Nesne Tanıma/Çevre Analizi
-                Log.d("AiAnalyzer", "Normal Çevre Analizi Yapılıyor...")
+                // Log.d("AiAnalyzer", "Normal Çevre Analizi Yapılıyor...")
             }
         }
 
         image.close() // Analiz tamamlandıktan sonra kareyi kapat
     }
 }
+
+ */

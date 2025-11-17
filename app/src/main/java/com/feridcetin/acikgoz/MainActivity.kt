@@ -11,6 +11,7 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.OnBackPressedCallback
+import androidx.preference.PreferenceManager // Gerektiğinde varsayılan tercihleri okumak için
 import java.util.Locale
 
 class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
@@ -20,6 +21,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var btnAiEye: ImageButton
     private lateinit var btnNavigation: ImageButton
     private lateinit var btnVoiceCommand: ImageButton
+    private lateinit var btnSettings: ImageButton // Ayarlar butonu eklendi
 
     private val REQUEST_CODE_SPEECH_INPUT = 100
     private val TAG = "MainActivity"
@@ -33,6 +35,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         btnAiEye = findViewById(R.id.btn_ai_eye)
         btnNavigation = findViewById(R.id.btn_navigation)
         btnVoiceCommand = findViewById(R.id.btn_voice_command)
+        btnSettings = findViewById(R.id.btn_settings) // Ayarlar butonu bağlandı
 
         // TTS Başlatma ve Dinleyici Kurulumu
         tts = TextToSpeech(this, this)
@@ -43,7 +46,32 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         // Android Geri Tuşu İşleyicisini Ayarlama
         setupOnBackPressedListener()
+
+        // Uygulama ayarlarını yükle (Örneğin TTS Hızı)
+        loadAppSettings()
     }
+
+    // ---------------- AYARLARI YÜKLEME ----------------
+
+    private fun loadAppSettings() {
+        // SettingsFragment'ta belirtilen özel shared preferences dosyasını kullanıyoruz
+        val prefs = getSharedPreferences("my_custom_settings", MODE_PRIVATE)
+
+        // Konuşma Hızını Yükle (Varsayılan 100/1.0f)
+        val ttsSpeedInt = prefs.getInt("tts_speed", 100)
+        val ttsSpeedFactor = ttsSpeedInt / 100.0f
+
+        // Ses Tonunu Yükle (Varsayılan 100/1.0f)
+        val ttsPitchInt = prefs.getInt("tts_pitch", 100)
+        val ttsPitchFactor = ttsPitchInt / 100.0f
+
+        if (::tts.isInitialized) {
+            // TTS başlatıldıysa ayarları uygula
+            tts.setSpeechRate(ttsSpeedFactor)
+            tts.setPitch(ttsPitchFactor)
+        }
+    }
+
 
     // ---------------- TTS BAŞLATMA VE DİNLEYİCİ ----------------
 
@@ -54,6 +82,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 Log.e(TAG, "TTS: Türkçe dil paketi eksik veya desteklenmiyor.")
             } else {
+                // TTS hazır olduğunda ayarları uygula ve karşılama mesajını oku
+                loadAppSettings()
                 speakStatus(getString(R.string.main_header_text))
             }
         } else {
@@ -91,6 +121,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             tvHeader.text = message
         }
         if (::tts.isInitialized) {
+            // Konuşmadan önce, değişmiş olabilecek TTS ayarlarını tekrar yükle
+            loadAppSettings()
             tts.speak(message, TextToSpeech.QUEUE_FLUSH, null, null)
         }
     }
@@ -115,6 +147,12 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         btnVoiceCommand.setOnClickListener {
             // Kısa basma: Sesli komut dinlemeyi başlat
             promptSpeechInput()
+        }
+
+        // 💡 4. AYARLAR BUTONU (Dokunmatik)
+        btnSettings.setOnClickListener {
+            speakStatus(getString(R.string.cd_settings))
+            startActivity(Intent(this, SettingsActivity::class.java))
         }
     }
 
@@ -154,6 +192,11 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         || command?.contains(getString(R.string.command_yoltarifi)) == true -> {
                     speakStatus(getString(R.string.cd_navigation_mode))
                     startActivity(Intent(this, NavigationActivity::class.java))
+                }
+                // Ayarlar Komutu
+                command?.contains("ayarlar") == true || command?.contains("settings") == true -> {
+                    speakStatus(getString(R.string.cd_settings))
+                    startActivity(Intent(this, SettingsActivity::class.java))
                 }
                 // Uygulamayı Kapatma Komutu
                 command?.contains(getString(R.string.command_close_app_1)) == true || command?.contains(getString(R.string.command_close_app_2)) == true -> {
@@ -200,6 +243,14 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             }
         }
         onBackPressedDispatcher.addCallback(this, callback)
+    }
+
+    // ---------------- YAŞAM DÖNGÜSÜ ----------------
+
+    override fun onResume() {
+        super.onResume()
+        // Ayarlar değişmiş olabileceği için geri dönüldüğünde ayarları yeniden yükle
+        loadAppSettings()
     }
 
     override fun onDestroy() {

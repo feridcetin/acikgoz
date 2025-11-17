@@ -43,18 +43,6 @@
     <string name="say_a_command">Bir komut söyleyin...</string>
 
 
-
-    <string-array name="theme_entries">
-        <item>Açık Tema</item>
-        <item>Koyu Tema</item>
-        <item>Sistem Varsayılanı</item>
-    </string-array>
-    <string-array name="theme_values">
-        <item>light</item>
-        <item>dark</item>
-        <item>system</item>
-    </string-array>
-
     <string name="cd_ai_mode_ocr_start">OCR işlemi başlatılıyor. Lütfen kamerayı okumak istediğiniz metne sabitleyin.</string>
 
     <string name="app_closing_message">Uygulama kapatılıyor. Güvenliğiniz için dikkatli olun.</string>
@@ -87,5 +75,26 @@
     <string name="msg_mode_color">Renk tanıma modu aktif. Lütfen kamerayı bir renge yöneltin.</string>
     <string name="msg_mode_currency">Para birimi tanıma modu aktif. Lütfen bir banknot gösterin.</string>
 
+
+    <string name="settings_header_general">Genel Ayarlar</string>
+    <string name="settings_title_theme">Uygulama Teması</string>
+    <string name="settings_header_voice">Ses ve TTS Ayarları</string>
+    <string name="settings_title_tts_speed">Konuşma Hızı</string>
+    <string name="settings_summary_tts_speed">TTS (Text-to-Speech) hızını ayarlar.</string>
+
+
+    <string name="settings_title_tts_pitch">Ses Tonu (Pitch)</string>
+    <string name="settings_summary_tts_pitch">TTS ses tonunun yüksekliğini ayarlar.</string>
+
+    <string-array name="theme_entries">
+        <item>Açık Tema</item>
+        <item>Koyu Tema</item>
+        <item>Sistem Varsayılanı</item>
+    </string-array>
+    <string-array name="theme_values">
+        <item>light</item>
+        <item>dark</item>
+        <item>system</item>
+    </string-array>
 
 </resources>

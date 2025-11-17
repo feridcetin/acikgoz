@@ -10,6 +10,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         // Ayar XML dosyasını burada yüklüyoruz.
         // NOT: settings_preferences.xml dosyasını bir sonraki adımda oluşturacağız.
+        preferenceManager.sharedPreferencesName = "my_custom_settings"
         setPreferencesFromResource(R.xml.settings_preferences, rootKey)
     }
 }
